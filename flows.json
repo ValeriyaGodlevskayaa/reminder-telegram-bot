@@ -1,0 +1,1980 @@
+[
+    {
+        "id": "362dabe1c9aaff1a",
+        "type": "tab",
+        "label": "Main",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "00d18c878db9dca9",
+        "type": "tab",
+        "label": "Postgres",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "23105f59304fd7a5",
+        "type": "tab",
+        "label": "Reminder",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "746980f6d65e6454",
+        "type": "postgreSQLConfig",
+        "name": "db",
+        "host": "localhost",
+        "hostFieldType": "str",
+        "port": "5432",
+        "portFieldType": "num",
+        "database": "telegram_bot_db",
+        "databaseFieldType": "str",
+        "ssl": "false",
+        "sslFieldType": "bool",
+        "applicationName": "",
+        "applicationNameType": "str",
+        "max": 10,
+        "maxFieldType": "num",
+        "idle": 1000,
+        "idleFieldType": "num",
+        "connectionTimeout": 10000,
+        "connectionTimeoutFieldType": "num",
+        "user": "admin",
+        "userFieldType": "str",
+        "password": "secret",
+        "passwordFieldType": "str"
+    },
+    {
+        "id": "2609e64eb9fbc642",
+        "type": "global-config",
+        "name": "global-config",
+        "env": []
+    },
+    {
+        "id": "a7798108ec626df2",
+        "type": "config",
+        "z": "362dabe1c9aaff1a",
+        "name": "config telegram api",
+        "properties": [
+            {
+                "p": "api_url",
+                "pt": "flow",
+                "to": "https://api.telegram.org/bot",
+                "tot": "str"
+            },
+            {
+                "p": "token",
+                "pt": "flow",
+                "to": "7924096352:AAEvAsqxWNNF4H5115xTt0nZ8yBP9OSXqWU",
+                "tot": "str"
+            }
+        ],
+        "active": true,
+        "x": 350,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "1f31199ed94100c3",
+        "type": "inject",
+        "z": "362dabe1c9aaff1a",
+        "name": "Set config",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 60,
+        "wires": [
+            [
+                "a7798108ec626df2"
+            ]
+        ]
+    },
+    {
+        "id": "8eacb006a66f1ca6",
+        "type": "inject",
+        "z": "362dabe1c9aaff1a",
+        "name": "saveUsers",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 660,
+        "wires": [
+            [
+                "3cb01bb0fd7c0d8e"
+            ]
+        ]
+    },
+    {
+        "id": "3cb01bb0fd7c0d8e",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "set msg.url",
+        "func": "msg.url = flow.get('api_url') + flow.get('token') + '/getUpdates';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 270,
+        "y": 660,
+        "wires": [
+            [
+                "dc987a657de1847f"
+            ]
+        ]
+    },
+    {
+        "id": "dc987a657de1847f",
+        "type": "http request",
+        "z": "362dabe1c9aaff1a",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 430,
+        "y": 660,
+        "wires": [
+            [
+                "5aa4084d354bc02b"
+            ]
+        ]
+    },
+    {
+        "id": "5aa4084d354bc02b",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "get data chatIds",
+        "func": "if (msg.payload && msg.payload.result) {\n    let data = msg.payload.result;\n    let chatMap = {};\n\n    data.forEach(function(el) {\n        if (el.message && el.message.chat) {\n            let chatId = el.message.chat.id;\n            let username = el.message.chat.username || \"unknown\";\n            let lastText = el.message.text || '';\n\n            chatMap[chatId] = {\n                chat_id: chatId,\n                username: username,\n                last_message: lastText\n            };\n\n            if (lastText) {\n                flow.set('lastCommand_' + chatId, lastText);\n            }\n        }\n    });\n    msg.response = Object.values(chatMap);\n} else {\n    msg.payload = 'Not have result';\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 660,
+        "wires": [
+            [
+                "23fa4b01da817182",
+                "86155eeda9adbf62",
+                "56ca6eca97da6ad3",
+                "0ecf0ffe55a09dac"
+            ]
+        ]
+    },
+    {
+        "id": "23fa4b01da817182",
+        "type": "debug",
+        "z": "362dabe1c9aaff1a",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "86155eeda9adbf62",
+        "type": "link out",
+        "z": "362dabe1c9aaff1a",
+        "name": "To create users",
+        "mode": "link",
+        "links": [
+            "379287edd5706324"
+        ],
+        "x": 995,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "978c434d804d7810",
+        "type": "http request",
+        "z": "362dabe1c9aaff1a",
+        "name": "Send Message",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 680,
+        "y": 780,
+        "wires": [
+            [
+                "7c9c8436f370a209"
+            ]
+        ]
+    },
+    {
+        "id": "56ca6eca97da6ad3",
+        "type": "debug",
+        "z": "362dabe1c9aaff1a",
+        "name": "debug 6",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "response",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "bea26bf8db8f7cfc",
+        "type": "split",
+        "z": "362dabe1c9aaff1a",
+        "name": "each send",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "payload",
+        "x": 470,
+        "y": 780,
+        "wires": [
+            [
+                "978c434d804d7810"
+            ]
+        ]
+    },
+    {
+        "id": "0ecf0ffe55a09dac",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "dataMessage",
+        "func": "msg.url = flow.get('api_url') + flow.get('token') + '/sendMessage';\nlet chats = msg.response || [];\nlet messages = [];\n\nchats.forEach(chat => {\n    let chatId = chat.chat_id;\n    let lastCommand = flow.get('lastCommand_' + chatId);\n    node.warn(lastCommand);\n    let processedCommand = flow.get('processedCommand_' + chatId);\n    node.error(processedCommand);\n    \n    if (lastCommand === processedCommand) {\n        return;\n    }\n    let sendMsg = '';\n\n    switch (lastCommand) {\n        case '/start':\n            sendMsg = 'Hello! I will remind you about birthdays. Use /addcontact to add a new contact.';\n            break;\n        case '/addcontact':\n            sendMsg = 'Please enter the name of your contact.';\n            break;\n        case '/list':\n            sendMsg = '/addcontact - Add contact\\n/list - Show commands\\n/help - Get help';\n            break;\n        case '/help':\n            sendMsg = 'I hear to help you!';\n            break;\n        default:\n            sendMsg = 'Unknown command. Use /list to see available commands.';\n    }\n\n    messages.push({\n        chat_id: chatId,\n        text: sendMsg\n    });\n});\nmsg.payload = messages;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 180,
+        "y": 840,
+        "wires": [
+            [
+                "bea26bf8db8f7cfc",
+                "1c6fd60cb3a6b76e"
+            ]
+        ]
+    },
+    {
+        "id": "7c9c8436f370a209",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "function 1",
+        "func": "\nif (msg.payload.ok) {\n    let chatId = msg.payload.result.chat.id;\n    let lastCommand = flow.get('lastCommand_' + chatId);\n    flow.set('processedCommand_' + chatId, lastCommand);\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 880,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1c6fd60cb3a6b76e",
+        "type": "debug",
+        "z": "362dabe1c9aaff1a",
+        "name": "debug 5",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 340,
+        "y": 960,
+        "wires": []
+    },
+    {
+        "id": "a988010a1ab02ec1",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "set webhook",
+        "func": "let url = flow.get('api_url') + flow.get('token');\n\nmsg.url = url + '/setWebhook';\nmsg.payload = {\n    url: \"https://6e9a-91-210-251-9.ngrok-free.app/telegram\",\n    allowed_updates: [\"message\"],\n    drop_pending_updates: true\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 850,
+        "y": 40,
+        "wires": [
+            [
+                "6e8d2a7d5a3bd5a3"
+            ]
+        ]
+    },
+    {
+        "id": "e68d2f4dae8df20d",
+        "type": "inject",
+        "z": "362dabe1c9aaff1a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 680,
+        "y": 40,
+        "wires": [
+            [
+                "a988010a1ab02ec1"
+            ]
+        ]
+    },
+    {
+        "id": "33c7f7976e194242",
+        "type": "debug",
+        "z": "362dabe1c9aaff1a",
+        "name": "debug 7",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1260,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "4f85d3bf5f831f54",
+        "type": "http in",
+        "z": "362dabe1c9aaff1a",
+        "name": "webhook",
+        "url": "/telegram",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 80,
+        "y": 200,
+        "wires": [
+            [
+                "a1f72df26b52f6ad",
+                "e7b507c1039a174c"
+            ]
+        ]
+    },
+    {
+        "id": "f34a1957c7f54733",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "get webhook",
+        "func": "let url = flow.get('api_url') + flow.get('token');\nmsg.url = url + '/getWebhookInfo';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 850,
+        "y": 80,
+        "wires": [
+            [
+                "4be5edb59451187f"
+            ]
+        ]
+    },
+    {
+        "id": "2e80a5373f409a21",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "chating",
+        "func": "let response = msg.payload;\nnode.warn(response);\n\nconst message = response.message || null;\nconst chatId = message.chat?.id || null;\nconst textMessage = message.text || null;\n\nif (!chatId && !textMessage) {\n    return;\n}\n\nif (response.err) {\n    msg.command = 'send';\n    msg.payload = response.err;\n    return msg;\n}\n\nlet texts = {\n    start: \"Hello! I will remind you about birthdays. Use /addcontact to add a new contact. Or /list - show all commands.\",\n    list: \"/addcontact - Add contact\\n/listcontact name - Show all contacts, or /listcontact Jon to filter by name\\n/list - All commands\\n/help - Help\\n/deletecontact - Remove contact by id\",\n    addcontact: \"Enter your contact, for example: Jon, 12-12-1992\",\n    listcontact: \"Added contacts:\",\n    unknow: \"Unknown command. Type /list to see a list of available commands.\",\n    remove: \"Enter the Id the contact you want to delete\",\n    help: \"Can I help you? Enter command /list.\"\n};\n\nconst commands = {\n    \"/start\": () => {\n        msg.command = 'start';\n        return {\n            chat_id: chatId,\n            username: message.chat.username,\n            text: texts.start\n        };\n    },\n    \"/list\": () => {\n        msg.command = 'send';\n        return {\n            chat_id: chatId,\n            text: texts.list\n        };\n    },\n    \"/addcontact\": () => {\n        msg.command = 'addcontact';\n        return {\n            chat_id: chatId,\n            text: texts.addcontact\n        };\n    },\n    \"/listcontact\": (name) => {\n        msg.command = 'listcontact';\n        return {\n            chat_id: chatId,\n            name: name,\n            text: texts.listcontact\n        };\n    },\n    \"/deletecontact\": () => {\n        msg.command = 'deletecontact';\n        return {\n            chat_id: chatId,\n            text: texts.remove\n        };\n    },\n    \"/help\": () => {\n        msg.command = 'send';\n        return {\n            chat_id: chatId,\n            text: texts.help\n        };\n    }\n};\n\nif (textMessage.startsWith(\"/\")) {\n    let parts = textMessage.split(\" \");\n    let baseCmd = parts[0];\n    let attr = parts.slice(1).join(\" \").trim();\n    node.warn({base: baseCmd, atr: attr});\n    if (commands[baseCmd]) {\n        const chat = commands[baseCmd](attr || null);\n        flow.set('lastCommand_' + chat.chat_id, baseCmd);\n        msg.chatInfo = chat;\n        msg.payload = chat;\n        return msg;\n    }\n}\n\nconst keys = Object.keys(commands);\nconst lastCommand = flow.get('lastCommand_' + chatId);\nif (!keys.includes(lastCommand)) {\n    msg.command = 'send';\n    msg.payload = {\n        chat_id: chatId,\n        text: texts.unknow\n    }\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 120,
+        "y": 320,
+        "wires": [
+            [
+                "0dad37344cb3550a"
+            ]
+        ]
+    },
+    {
+        "id": "f328d31a8b037ef9",
+        "type": "inject",
+        "z": "362dabe1c9aaff1a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 680,
+        "y": 80,
+        "wires": [
+            [
+                "f34a1957c7f54733"
+            ]
+        ]
+    },
+    {
+        "id": "0827a67867628cc9",
+        "type": "http request",
+        "z": "362dabe1c9aaff1a",
+        "name": "Send Message",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1200,
+        "y": 240,
+        "wires": [
+            [
+                "1b534624b138463a"
+            ]
+        ]
+    },
+    {
+        "id": "3547b839540b0901",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "setUrlSend",
+        "func": "msg.url = flow.get('api_url') + flow.get('token') + '/sendMessage';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1030,
+        "y": 240,
+        "wires": [
+            [
+                "0827a67867628cc9"
+            ]
+        ]
+    },
+    {
+        "id": "bf990d6d8e693d91",
+        "type": "link call",
+        "z": "362dabe1c9aaff1a",
+        "name": "getUserCall",
+        "links": [
+            "43656378ea8b4c97"
+        ],
+        "linkType": "static",
+        "timeout": "30",
+        "x": 290,
+        "y": 440,
+        "wires": [
+            [
+                "23663adc53a1ffc1"
+            ]
+        ]
+    },
+    {
+        "id": "acd467a8eaa3177c",
+        "type": "link call",
+        "z": "362dabe1c9aaff1a",
+        "name": "AddContact",
+        "links": [
+            "1cc9762c685a5462"
+        ],
+        "linkType": "static",
+        "timeout": "30",
+        "x": 850,
+        "y": 320,
+        "wires": [
+            [
+                "8f1307b5b85092b4"
+            ]
+        ]
+    },
+    {
+        "id": "4be5edb59451187f",
+        "type": "http request",
+        "z": "362dabe1c9aaff1a",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1050,
+        "y": 80,
+        "wires": [
+            [
+                "33c7f7976e194242"
+            ]
+        ]
+    },
+    {
+        "id": "6e8d2a7d5a3bd5a3",
+        "type": "http request",
+        "z": "362dabe1c9aaff1a",
+        "name": "",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1050,
+        "y": 40,
+        "wires": [
+            [
+                "33c7f7976e194242"
+            ]
+        ]
+    },
+    {
+        "id": "23663adc53a1ffc1",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "setUserId",
+        "func": "node.warn(msg.payload);\nconst contact = msg.contact;\nconst action = msg.command;\nconst userId = msg.payload?.user_id || null;\n\nif (userId === null) {\n    return;\n}\nmsg.contact.user_id = userId;\nif (action === 'saveContact') {\n    msg.payload = {\n        user_id: userId,\n        name: contact.name,\n        birthday: contact.birthday\n    }\n}\nnode.warn(msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 500,
+        "wires": [
+            [
+                "c21963d0b14b0347"
+            ]
+        ]
+    },
+    {
+        "id": "40020ce9bf660494",
+        "type": "link call",
+        "z": "362dabe1c9aaff1a",
+        "name": "listContacts",
+        "links": [
+            "3af5b068dd1d9da7"
+        ],
+        "linkType": "static",
+        "timeout": "30",
+        "x": 650,
+        "y": 360,
+        "wires": [
+            [
+                "510fd43d50309884"
+            ]
+        ]
+    },
+    {
+        "id": "510fd43d50309884",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "msgList",
+        "func": "const contacts = msg.payload;\nconst chatInfo = msg.chatInfo;\n\nif (chatInfo || chatInfo.length) {\n    msg.payload = {\n            chat_id: chatInfo.chat_id,\n            text: \"No contacts found.\"\n    };\n}\n\nif (contacts && contacts.length) {\n    let counter = 0;\n    let contactList = contacts.map(item => {\n        let date = new Date(item.birthday);\n        let formattedDate = date.toLocaleDateString(\"uk-UA\", {\n            day: \"2-digit\",\n            month: \"2-digit\",\n            year: \"numeric\"\n        });\n        counter++;\n        return `${counter}. ${item.name}, ${formattedDate}. Id:${item.id}`;\n    }).join(\"\\n\");\n\n    msg.payload.text = contactList;\n}\nnode.warn(msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 360,
+        "wires": [
+            [
+                "3547b839540b0901",
+                "0e2aad1648302246"
+            ]
+        ]
+    },
+    {
+        "id": "f54497b9e5b014c4",
+        "type": "inject",
+        "z": "362dabe1c9aaff1a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 680,
+        "y": 120,
+        "wires": [
+            [
+                "d19f8f2f10770e72"
+            ]
+        ]
+    },
+    {
+        "id": "d19f8f2f10770e72",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "delete",
+        "func": "let url = flow.get('api_url') + flow.get('token');\nmsg.url = url + '/deleteWebhook?drop_pending_updates=true';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 830,
+        "y": 120,
+        "wires": [
+            [
+                "4be5edb59451187f"
+            ]
+        ]
+    },
+    {
+        "id": "a1f72df26b52f6ad",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "validContact",
+        "func": "\nconst res = msg.payload.message;\nconst chatId = res.chat?.id || null;\nnode.warn({chat: chatId});\nconst textMessage = res.text;\n\nif (chatId === null) {\n    return;\n}\nmsg.contact = {\n    user_id: null\n}\n\nif (textMessage.startsWith(\"/\")) {\n    flow.set('lastCommand_' + chatId, textMessage);\n    return msg;\n}\n\nconst lastCommand = flow.get('lastCommand_' + chatId);\nnode.warn({name: 'lastCommand', text: lastCommand});\nif (lastCommand === '/addcontact') {\n    let parts = textMessage.split(/\\s*,\\s*/);\n    let name = parts[0] || null;\n    let date = parts[1] || null;\n    if (!name || !date) {\n        msg.payload.err = {\n            chat_id: chatId,\n            text: !name ? \"Name is required.\" : \"Date is required\"\n        }\n    }\n\n    if (!isValidDate(date)) {\n        msg.payload.err = {\n            chat_id: chatId,\n            text: \"Wrong date. Format date: DD-MM-YYYY.\"\n        }\n    } else {\n        msg.payload.contact = {\n            name: name,\n            birthday: date,\n            chat_id: chatId\n        };\n        msg.contact = msg.payload.contact;\n        msg.command = 'saveContact';\n    }\n}\n\nif (lastCommand === '/deletecontact') {\n    let contactId = Number(textMessage);\n    if (!Number.isInteger(contactId)) {\n        msg.payload.err = {\n            chat_id: chatId,\n            text: \"Wrong number contact. For example: 1.\"\n        };\n    } else {\n        msg.payload.contact = {\n            chat_id: chatId,\n            user_id: null,\n            id: textMessage\n        };\n        msg.contact = msg.payload.contact;\n        msg.command = 'deleteContact';\n    }\n    \n}\nfunction isValidDate(date) {\n    const parts = date.split(\"-\");\n    if (parts.length !== 3) return false;\n\n    const [day, month, year] = parts.map(Number);\n    const parsedDate = new Date(year, month - 1, day);\n\n    return parsedDate.getFullYear() === year &&\n           parsedDate.getMonth() === month - 1 &&\n           parsedDate.getDate() === day;\n}\nnode.warn(msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 250,
+        "y": 240,
+        "wires": [
+            [
+                "2e80a5373f409a21"
+            ]
+        ]
+    },
+    {
+        "id": "0dad37344cb3550a",
+        "type": "switch",
+        "z": "362dabe1c9aaff1a",
+        "name": "commands",
+        "property": "command",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "start",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "send",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "addcontact",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "listcontact",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "saveContact",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "deletecontact",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "deleteContact",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 7,
+        "x": 290,
+        "y": 340,
+        "wires": [
+            [
+                "00c8437ea6fd3cf4"
+            ],
+            [
+                "3547b839540b0901"
+            ],
+            [
+                "3547b839540b0901"
+            ],
+            [
+                "bf990d6d8e693d91"
+            ],
+            [
+                "bf990d6d8e693d91"
+            ],
+            [
+                "3547b839540b0901"
+            ],
+            [
+                "bf990d6d8e693d91"
+            ]
+        ]
+    },
+    {
+        "id": "ec7645afa44f6dd3",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "contactData",
+        "func": "node.warn(msg.payload);\nif (msg.contact) {\n    const userId = msg.payload.user_id;\n    msg.payload = {\n        user_id: userId,\n        name: msg.contact.name,\n        birthday: msg.contact.birthday\n    };\n    msg.payload.user_id = userId;\n}\nnode.warn(msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 320,
+        "wires": [
+            [
+                "acd467a8eaa3177c"
+            ]
+        ]
+    },
+    {
+        "id": "c21963d0b14b0347",
+        "type": "switch",
+        "z": "362dabe1c9aaff1a",
+        "name": "commands",
+        "property": "command",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "saveContact",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "listcontact",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "deleteContact",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 470,
+        "y": 420,
+        "wires": [
+            [
+                "ec7645afa44f6dd3"
+            ],
+            [
+                "40020ce9bf660494"
+            ],
+            [
+                "1e5202c2d8b249e8"
+            ]
+        ]
+    },
+    {
+        "id": "1e5202c2d8b249e8",
+        "type": "link call",
+        "z": "362dabe1c9aaff1a",
+        "name": "removeContact",
+        "links": [
+            "060d2f98bef70945"
+        ],
+        "linkType": "static",
+        "timeout": "30",
+        "x": 660,
+        "y": 400,
+        "wires": [
+            [
+                "6035080a8214bbb5"
+            ]
+        ]
+    },
+    {
+        "id": "6035080a8214bbb5",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "msgDeleted",
+        "func": "const data = msg.payload;\nnode.warn(msg.payload);\nconst chatId = msg.contact?.chat_id || null;\nif (chatId === null) {\n    return;\n}\nif (!data || data.length === 0) {\n    msg.payload = {\n        chat_id: chatId,\n        text: \"Contact not found. Try command /listcontact.\"\n    };\n    return msg;\n}\nlet contact = data[0];\nlet date = new Date(contact.birthday);\nlet formattedDate = date.toLocaleDateString(\"uk-UA\", {\n    day: \"2-digit\",\n    month: \"2-digit\",\n    year: \"numeric\"\n});\nmsg.payload = {\n        chat_id: chatId,\n        text: `Contact: ${contact.name}, ${formattedDate} deleted.`\n    };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 870,
+        "y": 400,
+        "wires": [
+            [
+                "0e2aad1648302246",
+                "3547b839540b0901"
+            ]
+        ]
+    },
+    {
+        "id": "0e2aad1648302246",
+        "type": "debug",
+        "z": "362dabe1c9aaff1a",
+        "name": "debug 11",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1040,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "e7b507c1039a174c",
+        "type": "http response",
+        "z": "362dabe1c9aaff1a",
+        "name": "response",
+        "statusCode": "",
+        "headers": {},
+        "x": 260,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "1b534624b138463a",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "status",
+        "func": "if (msg.payload.ok === true) {\n    node.warn('Message sent successfully');\n} else {\n    node.error('Failed to send message');\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1350,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8f1307b5b85092b4",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "msgAdded",
+        "func": "const chatId = msg.contact?.chat_id;\nmsg.payload = {\n    chat_id: chatId,\n    text: \"Contact was added. You can check call: /listcontact.\"\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1070,
+        "y": 320,
+        "wires": [
+            [
+                "0e2aad1648302246",
+                "3547b839540b0901"
+            ]
+        ]
+    },
+    {
+        "id": "daffa7ef966c602e",
+        "type": "link in",
+        "z": "362dabe1c9aaff1a",
+        "name": "link in 1",
+        "links": [
+            "24ce580a6c8405ec"
+        ],
+        "x": 705,
+        "y": 220,
+        "wires": [
+            [
+                "3547b839540b0901"
+            ]
+        ]
+    },
+    {
+        "id": "00c8437ea6fd3cf4",
+        "type": "link call",
+        "z": "362dabe1c9aaff1a",
+        "name": "",
+        "links": [
+            "11c795a65cc9a4bd"
+        ],
+        "linkType": "static",
+        "timeout": "30",
+        "x": 440,
+        "y": 260,
+        "wires": [
+            [
+                "1eebf20c1230e140"
+            ]
+        ]
+    },
+    {
+        "id": "1eebf20c1230e140",
+        "type": "function",
+        "z": "362dabe1c9aaff1a",
+        "name": "msgStart",
+        "func": "const chatInfo = msg.chatInfo;\nif (chatInfo === null) {\n   return;\n}\n\n msg.payload = {\n        chat_id: chatInfo.chat_id,\n        text: chatInfo.text\n    }\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 260,
+        "wires": [
+            [
+                "3547b839540b0901"
+            ]
+        ]
+    },
+    {
+        "id": "f96cb37ae45b30a0",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "createTableUsers",
+        "query": "\nCREATE TABLE IF NOT EXISTS users (\n    id BIGSERIAL PRIMARY KEY,\n    chat_id BIGINT UNIQUE NOT NULL,\n    username varchar(255) NOT NULL,\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 350,
+        "y": 60,
+        "wires": [
+            [
+                "46e76d91dbe8ab51"
+            ]
+        ]
+    },
+    {
+        "id": "5d14283fccfddbc4",
+        "type": "inject",
+        "z": "00d18c878db9dca9",
+        "name": "Set",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 60,
+        "wires": [
+            [
+                "f96cb37ae45b30a0"
+            ]
+        ]
+    },
+    {
+        "id": "a19c2a665c0a0a78",
+        "type": "inject",
+        "z": "00d18c878db9dca9",
+        "name": "Set",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 120,
+        "wires": [
+            [
+                "fa24300093038136"
+            ]
+        ]
+    },
+    {
+        "id": "fa24300093038136",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "createTableContacts",
+        "query": "\nCREATE TABLE IF NOT EXISTS contacts (\n    id BIGSERIAL PRIMARY KEY,\n    user_id INT NOT NULL,\n    name varchar(255) NOT NULL,\n    birthday DATE NOT NULL,\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE\n);",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 360,
+        "y": 120,
+        "wires": [
+            [
+                "46e76d91dbe8ab51"
+            ]
+        ]
+    },
+    {
+        "id": "46e76d91dbe8ab51",
+        "type": "debug",
+        "z": "00d18c878db9dca9",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "e1ae9b9957aa17dd",
+        "type": "inject",
+        "z": "00d18c878db9dca9",
+        "name": "Get",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 240,
+        "wires": [
+            [
+                "fbc9ab073d8b6b37"
+            ]
+        ]
+    },
+    {
+        "id": "fbc9ab073d8b6b37",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "get all",
+        "query": "SELECT * FROM users \n    INNER JOIN contacts \n    ON users.id = contacts.user_id;",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 310,
+        "y": 240,
+        "wires": [
+            [
+                "46e76d91dbe8ab51"
+            ]
+        ]
+    },
+    {
+        "id": "b78160afe8013a26",
+        "type": "inject",
+        "z": "00d18c878db9dca9",
+        "name": "Set user",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 300,
+        "wires": [
+            [
+                "c76d822bd5724161"
+            ]
+        ]
+    },
+    {
+        "id": "1c37a327c4bc9e20",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "insertUser",
+        "query": "INSERT INTO users (chat_id, username) \n    VALUES ($1, $2);",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 530,
+        "y": 300,
+        "wires": [
+            [
+                "46e76d91dbe8ab51"
+            ]
+        ]
+    },
+    {
+        "id": "c76d822bd5724161",
+        "type": "function",
+        "z": "00d18c878db9dca9",
+        "name": "testUser",
+        "func": "let chat_id = 123;\nlet username = 'test-123';\n\nmsg.params = [chat_id, username];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 300,
+        "wires": [
+            [
+                "1c37a327c4bc9e20"
+            ]
+        ]
+    },
+    {
+        "id": "379287edd5706324",
+        "type": "link in",
+        "z": "00d18c878db9dca9",
+        "name": "Save users",
+        "links": [
+            "86155eeda9adbf62"
+        ],
+        "x": 55,
+        "y": 360,
+        "wires": [
+            [
+                "3296d6182067579d"
+            ]
+        ]
+    },
+    {
+        "id": "3296d6182067579d",
+        "type": "function",
+        "z": "00d18c878db9dca9",
+        "name": "getDataUsers",
+        "func": "let chatData = msg.response;\n\nif (chatData && chatData.length > 0) {\n    let valuesPlaceholder = chatData.map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(\", \");\n    msg.query = `INSERT INTO users (chat_id, username) VALUES ${valuesPlaceholder} ON CONFLICT (chat_id) DO NOTHING;`;\n    msg.params = chatData.flatMap(d => [Number(d.chat_id), String(d.username)]);\n\nnode.warn(msg.payload);\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 260,
+        "y": 360,
+        "wires": [
+            [
+                "6d3ba9c896368286"
+            ]
+        ]
+    },
+    {
+        "id": "6d3ba9c896368286",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "bulkInsertUsers",
+        "query": "",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": true,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 480,
+        "y": 360,
+        "wires": [
+            [
+                "8aa8eed35202fb49"
+            ]
+        ]
+    },
+    {
+        "id": "8aa8eed35202fb49",
+        "type": "debug",
+        "z": "00d18c878db9dca9",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1100,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "59a18520c20ca984",
+        "type": "function",
+        "z": "00d18c878db9dca9",
+        "name": "set params",
+        "func": "const contact = msg.payload?.contact || msg.payload;\nif (contact) {\n    msg.params = [contact.chat_id];\n    return msg;\n}\nnode.warn(msg);\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 210,
+        "y": 440,
+        "wires": [
+            [
+                "b52bb7d39d6aea49",
+                "a90b555ebe474238"
+            ]
+        ]
+    },
+    {
+        "id": "b52bb7d39d6aea49",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "getUserId",
+        "query": "SELECT id FROM users WHERE chat_id=$1;",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 440,
+        "y": 440,
+        "wires": [
+            [
+                "4502c81af391ddec"
+            ]
+        ]
+    },
+    {
+        "id": "6ed78cef832cf192",
+        "type": "function",
+        "z": "00d18c878db9dca9",
+        "name": "contactParams",
+        "func": "let contactObj = msg.payload;\nif(contactObj) {\n    let date = contactObj.birthday;\n    const parts = date.split(\"-\");\n    const [day, month, year] = parts.map(Number);\n    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;\n    date = `${year}-${String(month).padStart(2, \"0\")}-${String(day).padStart(2, \"0\")}`;\n    msg.params = [contactObj.user_id, contactObj.name, date];\n    return msg;\n}\nreturn;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 220,
+        "y": 640,
+        "wires": [
+            [
+                "813c62d2cf9c54d6"
+            ]
+        ]
+    },
+    {
+        "id": "813c62d2cf9c54d6",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "insertContact",
+        "query": "INSERT INTO contacts (user_id, name, birthday) \n    VALUES ($1, $2, $3);",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 500,
+        "y": 640,
+        "wires": [
+            [
+                "ae68a48fafa047c0"
+            ]
+        ]
+    },
+    {
+        "id": "4502c81af391ddec",
+        "type": "function",
+        "z": "00d18c878db9dca9",
+        "name": "responseResult",
+        "func": "let rows = msg.payload;\nif (rows) {\n    const userId = rows[0].id;\n    msg.payload = {\n        user_id: userId\n    };\n}\nnode.warn(msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 440,
+        "wires": [
+            [
+                "fb39d50313c2b53d",
+                "8aa8eed35202fb49"
+            ]
+        ]
+    },
+    {
+        "id": "43656378ea8b4c97",
+        "type": "link in",
+        "z": "00d18c878db9dca9",
+        "name": "getUserId",
+        "links": [],
+        "x": 65,
+        "y": 440,
+        "wires": [
+            [
+                "59a18520c20ca984"
+            ]
+        ]
+    },
+    {
+        "id": "fb39d50313c2b53d",
+        "type": "link out",
+        "z": "00d18c878db9dca9",
+        "name": "link out 1",
+        "mode": "return",
+        "links": [],
+        "x": 775,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "1cc9762c685a5462",
+        "type": "link in",
+        "z": "00d18c878db9dca9",
+        "name": "save contacts",
+        "links": [],
+        "x": 65,
+        "y": 640,
+        "wires": [
+            [
+                "6ed78cef832cf192"
+            ]
+        ]
+    },
+    {
+        "id": "ae68a48fafa047c0",
+        "type": "link out",
+        "z": "00d18c878db9dca9",
+        "name": "link out 2",
+        "mode": "return",
+        "links": [],
+        "x": 695,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "a90b555ebe474238",
+        "type": "debug",
+        "z": "00d18c878db9dca9",
+        "name": "debug 8",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 320,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "e34b5022c3b154aa",
+        "type": "function",
+        "z": "00d18c878db9dca9",
+        "name": "allContacts",
+        "func": "node.warn(msg.payload);\nconst userId = msg.payload?.user_id;\nif (userId) {\n    let query = \"SELECT * FROM contacts WHERE user_id=$1\";\n    msg.params = [Number(userId)];\n\n    let name = msg.chatInfo?.name;\n    if (name) {\n        query += \" AND LOWER(name) ILIKE $2\";\n        msg.params.push(`${name.toLowerCase()}%`);\n    }\n    node.warn(query);\n    msg.query = query;\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 210,
+        "y": 700,
+        "wires": [
+            [
+                "044b0defd01ae382",
+                "2256bae3f4d4488e"
+            ]
+        ]
+    },
+    {
+        "id": "044b0defd01ae382",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "selectContacts",
+        "query": "",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 500,
+        "y": 700,
+        "wires": [
+            [
+                "6794a9f5c49e66fc",
+                "8f16c3a370d8d67c"
+            ]
+        ]
+    },
+    {
+        "id": "3af5b068dd1d9da7",
+        "type": "link in",
+        "z": "00d18c878db9dca9",
+        "name": "contactsByUserId",
+        "links": [],
+        "x": 65,
+        "y": 700,
+        "wires": [
+            [
+                "e34b5022c3b154aa"
+            ]
+        ]
+    },
+    {
+        "id": "6794a9f5c49e66fc",
+        "type": "link out",
+        "z": "00d18c878db9dca9",
+        "name": "link out 3",
+        "mode": "return",
+        "links": [],
+        "x": 695,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "8f16c3a370d8d67c",
+        "type": "debug",
+        "z": "00d18c878db9dca9",
+        "name": "debug 9",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "cd8180f7a1e12441",
+        "type": "function",
+        "z": "00d18c878db9dca9",
+        "name": "set params",
+        "func": "node.warn(msg.contact);\nconst userId = msg.contact?.user_id;\nconst id = msg.contact?.id;\nif (userId) {\n    msg.params = [Number(userId), Number(id)];\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 210,
+        "y": 760,
+        "wires": [
+            [
+                "f0008fb4f87946b7"
+            ]
+        ]
+    },
+    {
+        "id": "f0008fb4f87946b7",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "deleteContact",
+        "query": "DELETE FROM contacts WHERE user_id=$1 AND id=$2 RETURNING *;",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 480,
+        "y": 760,
+        "wires": [
+            [
+                "8f16c3a370d8d67c",
+                "7be28d2f39ffc98b"
+            ]
+        ]
+    },
+    {
+        "id": "060d2f98bef70945",
+        "type": "link in",
+        "z": "00d18c878db9dca9",
+        "name": "deleteContact",
+        "links": [],
+        "x": 65,
+        "y": 760,
+        "wires": [
+            [
+                "cd8180f7a1e12441"
+            ]
+        ]
+    },
+    {
+        "id": "7be28d2f39ffc98b",
+        "type": "link out",
+        "z": "00d18c878db9dca9",
+        "name": "link out 4",
+        "mode": "return",
+        "links": [],
+        "x": 695,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "12db2014fea0a42c",
+        "type": "inject",
+        "z": "00d18c878db9dca9",
+        "name": "Drop",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 180,
+        "wires": [
+            [
+                "90d0312ea833e887"
+            ]
+        ]
+    },
+    {
+        "id": "90d0312ea833e887",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "dropTabels",
+        "query": "DROP TABLE IF EXISTS contacts;\nDROP TABLE IF EXISTS users;",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 330,
+        "y": 180,
+        "wires": [
+            [
+                "46e76d91dbe8ab51"
+            ]
+        ]
+    },
+    {
+        "id": "818b6b3ce163318c",
+        "type": "inject",
+        "z": "00d18c878db9dca9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 840,
+        "wires": [
+            [
+                "d89d19518cdbe5ce"
+            ]
+        ]
+    },
+    {
+        "id": "d89d19518cdbe5ce",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "getTodayBdayContacts",
+        "query": "SELECT u.chat_id, STRING_AGG(c.name, ', ') AS names  \nFROM contacts c\nINNER JOIN users u ON u.id = c.user_id\nWHERE EXTRACT(MONTH FROM c.birthday) = EXTRACT(MONTH FROM CURRENT_DATE)\n  AND EXTRACT(DAY FROM c.birthday) = EXTRACT(DAY FROM CURRENT_DATE)\nGROUP BY u.chat_id;",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 390,
+        "y": 840,
+        "wires": [
+            [
+                "8f16c3a370d8d67c",
+                "8e7efe248442a21f"
+            ]
+        ]
+    },
+    {
+        "id": "82e299002e8e8344",
+        "type": "link in",
+        "z": "00d18c878db9dca9",
+        "name": "currentBirthday",
+        "links": [],
+        "x": 145,
+        "y": 900,
+        "wires": [
+            [
+                "d89d19518cdbe5ce"
+            ]
+        ]
+    },
+    {
+        "id": "8e7efe248442a21f",
+        "type": "link out",
+        "z": "00d18c878db9dca9",
+        "name": "link out 5",
+        "mode": "return",
+        "links": [],
+        "x": 685,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "2256bae3f4d4488e",
+        "type": "debug",
+        "z": "00d18c878db9dca9",
+        "name": "debug 12",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 400,
+        "y": 960,
+        "wires": []
+    },
+    {
+        "id": "582dfd934fb2b28d",
+        "type": "function",
+        "z": "00d18c878db9dca9",
+        "name": "addUser",
+        "func": "node.warn(msg);\nlet res = msg.payload;\nconst chatId = res.chat_id;\nconst username = res.username;\n\nif (chatId && username) {\n    msg.params = [chatId, username];\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 200,
+        "y": 560,
+        "wires": [
+            [
+                "8d5d27d5c1ea8aeb"
+            ]
+        ]
+    },
+    {
+        "id": "8d5d27d5c1ea8aeb",
+        "type": "postgresql",
+        "z": "00d18c878db9dca9",
+        "name": "insertUser",
+        "query": "INSERT INTO users (chat_id, username) VALUES ($1,$2) ON CONFLICT (chat_id) DO NOTHING;",
+        "postgreSQLConfig": "746980f6d65e6454",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 410,
+        "y": 560,
+        "wires": [
+            [
+                "8aa8eed35202fb49",
+                "86d6aee29fe30cee"
+            ]
+        ]
+    },
+    {
+        "id": "11c795a65cc9a4bd",
+        "type": "link in",
+        "z": "00d18c878db9dca9",
+        "name": "addUser",
+        "links": [],
+        "x": 65,
+        "y": 560,
+        "wires": [
+            [
+                "582dfd934fb2b28d"
+            ]
+        ]
+    },
+    {
+        "id": "86d6aee29fe30cee",
+        "type": "link out",
+        "z": "00d18c878db9dca9",
+        "name": "link out 6",
+        "mode": "return",
+        "links": [],
+        "x": 595,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "688d032885045cf1",
+        "type": "inject",
+        "z": "23105f59304fd7a5",
+        "name": "start",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "00 12 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 90,
+        "y": 100,
+        "wires": [
+            [
+                "8aac53c75ba73428"
+            ]
+        ]
+    },
+    {
+        "id": "8aac53c75ba73428",
+        "type": "link call",
+        "z": "23105f59304fd7a5",
+        "name": "todayBirthday",
+        "links": [
+            "82e299002e8e8344"
+        ],
+        "linkType": "static",
+        "timeout": "30",
+        "x": 280,
+        "y": 100,
+        "wires": [
+            [
+                "b13cdbdabbbbb652",
+                "21cd013625588c94"
+            ]
+        ]
+    },
+    {
+        "id": "b13cdbdabbbbb652",
+        "type": "debug",
+        "z": "23105f59304fd7a5",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "21cd013625588c94",
+        "type": "function",
+        "z": "23105f59304fd7a5",
+        "name": "preMsg",
+        "func": "node.warn(msg.payload);\nlet contacts = msg.payload;\nlet messages = [];\nif (contacts) {\n    contacts.forEach(item => {\n        let obj = {\n            chat_id: item.chat_id,\n            text: `Today is the birthday of: ${item.names}. Don't forget to congratulate!`\n        };\n        messages.push(obj);\n    });\n    msg.payload = messages;\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 100,
+        "wires": [
+            [
+                "b13cdbdabbbbb652",
+                "5e3f8a860afbe08f"
+            ]
+        ]
+    },
+    {
+        "id": "24ce580a6c8405ec",
+        "type": "link out",
+        "z": "23105f59304fd7a5",
+        "name": "sendMsg",
+        "mode": "link",
+        "links": [
+            "daffa7ef966c602e"
+        ],
+        "x": 725,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "5e3f8a860afbe08f",
+        "type": "split",
+        "z": "23105f59304fd7a5",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "payload",
+        "x": 630,
+        "y": 100,
+        "wires": [
+            [
+                "24ce580a6c8405ec"
+            ]
+        ]
+    }
+]
