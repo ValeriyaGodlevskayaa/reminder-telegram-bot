@@ -355,7 +355,7 @@
         "type": "function",
         "z": "362dabe1c9aaff1a",
         "name": "set webhook",
-        "func": "let url = flow.get('api_url') + flow.get('token');\n\nmsg.url = url + '/setWebhook';\nmsg.payload = {\n    url: \"https://6e9a-91-210-251-9.ngrok-free.app/telegram\",\n    allowed_updates: [\"message\"],\n    drop_pending_updates: true\n};\n\nreturn msg;",
+        "func": "let url = flow.get('api_url') + flow.get('token');\n\nmsg.url = url + '/setWebhook';\nmsg.payload = {\n    url: \"https://3710-91-210-251-9.ngrok-free.app/telegram\",\n    allowed_updates: [\"message\"],\n    drop_pending_updates: true\n};\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
